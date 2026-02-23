@@ -1,17 +1,99 @@
 ---
+import { Usecase } from "../usecase";
+import { filterConfig } from "../services/config";
+import FundingRateTable from "../components/FundingRateTable.svelte";
+import "../styles/global.css";
 
+const arbitageViewModel = await Usecase.GetFundingRateArbitageViewModel();
+
+// ── SEO ───────────────────────────────────────────────────────────────────────
+const title =
+	"HIP3 Funding Rate Comparison | Real-time DEX Arbitrage on Hyperliquid";
+const description =
+	"Compare real-time funding rates across HIP3 DEX providers on Hyperliquid. " +
+	"Spot cross-DEX arbitrage opportunities with live spread analysis and annualised APR calculations.";
+const canonicalURL = Astro.url.href;
+const ogImage = new URL("/og.png", Astro.url).href;
+
+const jsonLd = {
+	"@context": "https://schema.org",
+	"@type": "WebApplication",
+	name: "HIP3 Funding Rate Comparison",
+	url: canonicalURL,
+	description,
+	applicationCategory: "FinanceApplication",
+	operatingSystem: "Any",
+	isAccessibleForFree: true,
+	offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+	featureList: [
+		"Real-time cross-DEX funding rate comparison",
+		"Spread analysis across HIP3 providers",
+		"Annualised APR calculation (8-hour funding periods)",
+		"Interactive filtering and sorting",
+	],
+	keywords:
+		"funding rate, DeFi, Hyperliquid, HIP3, perpetuals, arbitrage, DEX, crypto",
+};
 ---
 
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+
+		<!-- ── Primary ─────────────────────────────────────────────────────── -->
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="robots" content="index, follow, max-image-preview:large" />
+		<meta name="theme-color" content="#0b1120" />
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- ── Open Graph ──────────────────────────────────────────────────── -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="HIP3 Funding Rate Comparison table" />
+		<meta property="og:site_name" content="HIP3 Funding Rates" />
+		<meta property="og:locale" content="en_US" />
+
+		<!-- ── Twitter Card ────────────────────────────────────────────────── -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
+		<meta name="twitter:image:alt" content="HIP3 Funding Rate Comparison table" />
+
+		<!-- ── Favicons ────────────────────────────────────────────────────── -->
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+
+		<!-- ── Structured data (JSON-LD) ───────────────────────────────────── -->
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 	</head>
-	<body>
-		<h1>Astro</h1>
+	<body class="bg-slate-950 text-slate-200 min-h-screen">
+		<main class="max-w-6xl mx-auto px-6 py-8">
+			<header class="mb-8 pb-6 border-b border-slate-800">
+				<h1 class="text-3xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+					HIP3 Funding Rate Comparison
+				</h1>
+				<p class="mt-2 text-slate-500 text-sm leading-relaxed">
+					Cross-DEX funding rates for assets listed on multiple HIP3 providers.
+					Sorted by spread — highest arbitrage opportunity first.
+				</p>
+			</header>
+
+			<section class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+				<FundingRateTable
+					data={arbitageViewModel}
+					filterConfig={filterConfig}
+					client:load
+				/>
+			</section>
+		</main>
 	</body>
 </html>
