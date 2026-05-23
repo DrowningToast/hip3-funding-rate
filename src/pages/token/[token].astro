@@ -1,0 +1,79 @@
+---
+import { FundingHistoryService } from "../../services/FundingHistoryService";
+import { HLInfo } from "../../clients/HLInfo";
+import FundingRateHistoryChart from "../../components/FundingRateHistoryChart.svelte";
+import "../../styles/global.css";
+
+const { token } = Astro.params;
+const leftDex = Astro.url.searchParams.get("left") ?? "hyperliquid";
+const rightDex = Astro.url.searchParams.get("right") ?? "hyperliquid";
+
+const svc = new FundingHistoryService(HLInfo);
+
+// 7 days of history
+const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+const [leftHistory, rightHistory] = await Promise.all([
+	svc.GetHistory(token!, leftDex, sevenDaysAgo).catch(() => []),
+	svc.GetHistory(token!, rightDex, sevenDaysAgo).catch(() => []),
+]);
+
+const title = `${token} Funding Rate | ${leftDex} vs ${rightDex} | HIP3`;
+const description = `7-day historical funding rate and APR comparison for ${token} on ${leftDex} and ${rightDex}.`;
+const canonicalURL = Astro.url.href;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="robots" content="index, follow" />
+		<meta name="theme-color" content="#0b1120" />
+		<link rel="canonical" href={canonicalURL} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+	</head>
+	<body class="bg-slate-950 text-slate-200 min-h-screen">
+		<main class="max-w-6xl mx-auto px-6 py-8">
+			<header class="mb-8 pb-6 border-b border-slate-800">
+				<nav class="mb-4">
+					<a
+						href="/"
+						class="text-slate-500 hover:text-slate-300 text-sm transition-colors"
+					>
+						← Back to overview
+					</a>
+				</nav>
+				<h1
+					class="text-3xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+				>
+					{token}
+				</h1>
+				<p class="mt-2 text-slate-500 text-sm leading-relaxed">
+					Historical funding rates comparing <span class="text-blue-400"
+						>{leftDex}</span
+					> vs <span class="text-purple-400">{rightDex}</span> over the past 7 days.
+				</p>
+			</header>
+
+			<FundingRateHistoryChart
+				{token}
+				{leftDex}
+				{rightDex}
+				{leftHistory}
+				{rightHistory}
+				client:load
+			/>
+		</main>
+	</body>
+</html>

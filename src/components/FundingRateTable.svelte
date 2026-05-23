@@ -4,6 +4,8 @@
 	import { ArbitageService } from '../services/ArbitageService';
 	import { FilterService } from '../services/FilterService';
 	import { SortService } from '../services/SortService';
+	import { AliasService } from '../services/AliasService';
+	import { assetAliases } from '../services/config';
 	import type { ArbitageViewModel, FilterConfiguration } from '../services/ArbitageService';
 	import type { SortColumn } from '../services/SortService';
 
@@ -37,9 +39,10 @@
 
 	// FilterService: created once, updated reactively as config changes
 	const filterService = untrack(() => new FilterService(initialConfig));
-	// ArbitageService + SortService: pure utility instances for client-side use
+	// ArbitageService + SortService + AliasService: pure utility instances for client-side use
 	const arbitageService = new ArbitageService();
 	const sortService = new SortService({ column: 'spread', direction: 'desc' });
+	const aliasService = new AliasService(assetAliases);
 	// Increment to trigger reactive re-sort when SortService state changes
 	let sortVersion = $state(0);
 
@@ -58,9 +61,13 @@
 
 	// ── Search (display concern) ──────────────────────────────────────────────
 	let search = $state('');
-	let visibleRows = $derived(
-		rows.filter((r) => r.asset.toLowerCase().includes(search.toLowerCase()))
-	);
+	let visibleRows = $derived.by(() => {
+		const terms = aliasService.resolveTerms(search);
+		if (terms.length === 0) return rows;
+		return rows.filter((r) =>
+			terms.some((t) => r.asset.toLowerCase().includes(t))
+		);
+	});
 
 	// ── Sort (delegated to SortService) ──────────────────────────────────────
 	let sortedRows = $derived.by(() => {
